@@ -1,5 +1,9 @@
-# Raw datasets
+# Raw and intermediate datasets
 Data/raw/
+Data/interim/
 
 # Local project tracker
 LankaHarvest_Project_Tracker.xlsx
+
+# Generated master dataset
+Data/processed/master_dataset.csv
