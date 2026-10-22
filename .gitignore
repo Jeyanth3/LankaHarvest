@@ -7,3 +7,4 @@ LankaHarvest_Project_Tracker.xlsx
 
 # Generated master dataset
 Data/processed/master_dataset.csv
+Data/processed/irrigation_dataset.csv
