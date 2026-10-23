@@ -192,4 +192,23 @@ irrigation.to_csv(
     index=False
 )
 
+# 9. INVESTIGATE MISSING IRRIGATION VALUES
+
+missing = irrigation[
+    irrigation["irrigation_share_pct"].isna()
+]
+
+print(missing[
+    ["district", "cultivation_year", "season",
+     "major_ha", "minor_ha", "rainfed_ha", "total_ha"]
+].head(15).to_string(index=False))
+
 print("Irrigation dataset saved successfully.")
+
+missing_by_year = irrigation.groupby(
+    ["cultivation_year", "season"]
+)["irrigation_share_pct"].apply(
+    lambda x: x.isna().sum()
+)
+
+print(missing_by_year.to_string())
