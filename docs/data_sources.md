@@ -14,13 +14,13 @@ This document records the datasets used in the LankaHarvest Paddy Yield Predicti
 - Extracted and combined using Python and Pandas.
 - 2,375 records generated in `master_dataset.csv`.
 
-**Status:** Collected — validation pending.
+**Status:** Collected and processed — final validation pending.
 
 ## 2. Climate Dataset
 
 **Source:** [NASA POWER](https://power.larc.nasa.gov/)
 
-**Coverage:** 1981–2026 (daily data)
+**Coverage:** 1981–March 2026 (daily data)
 
 **Variables Collected:**
 - Precipitation
@@ -30,20 +30,19 @@ This document records the datasets used in the LankaHarvest Paddy Yield Predicti
 
 **Description:**
 - Downloaded using NASA POWER API and Python.
-- Data collected for 25 districts using representative coordinates.
-- Rainy days will be calculated from daily precipitation.
-- Missing values and accuracy will be evaluated during preprocessing.
+- Daily climate data collected for 25 districts using representative coordinates.
+- A Python script has been prepared to calculate seasonal climate features, including rainy days.
 
-**Status:** Collected — preprocessing pending.
+**Status:** Daily data collected — seasonal processing and validation pending.
 
 ## 3. District Coordinates Dataset
 
 **Source:** [Sri Lanka Districts GeoJSON — GitHub](https://github.com/Kavidu23/sri-lanka-districts-geo-json)
 
 **Description:**
-- Contains latitude and longitude reference coordinates for 25 districts.
-- Used to automate climate data collection through NASA POWER.
-- Coordinates are approximate district reference locations, not necessarily paddy-growing locations.
+- Contains reference coordinates for 25 districts.
+- Used for automated NASA POWER data collection.
+- Coordinates are approximate district locations, not necessarily paddy-growing areas.
 
 **Status:** Collected.
 
@@ -51,15 +50,20 @@ This document records the datasets used in the LankaHarvest Paddy Yield Predicti
 
 **Source:** [Department of Census and Statistics, Sri Lanka](https://www.statistics.gov.lk/Agriculture/StaticalInformation/PaddyStatistics)
 
-**Description:**
-- Harvested area under Major, Minor and Rainfed cultivation.
-- Intended for developing an irrigation-related feature.
+**Coverage:** 1978–2025 (Maha), 1979–2025 (Yala)
 
-**Status:** Maha dataset collected; Yala dataset pending.
+**Description:**
+- Contains harvested extent (ha) under Major, Minor, and Rainfed cultivation.
+- Maha and Yala datasets extracted and combined using Python.
+- 2,375 records generated in `irrigation_dataset.csv`.
+- Irrigated harvested-area share calculated using Major and Minor harvested areas.
+
+**Status:** Collected and processed — 568 missing irrigation-share values retained for further handling.
 
 ## 5. Next Steps
 
-- Complete irrigation data collection.
-- Combine the collected datasets.
-- Clean and validate the final CSV.
+- Validate the seasonal climate dataset.
+- Combine paddy yield, irrigation, and climate datasets.
+- Handle missing and invalid values.
 - Compare with existing published datasets.
+- Prepare the final ML training dataset.
