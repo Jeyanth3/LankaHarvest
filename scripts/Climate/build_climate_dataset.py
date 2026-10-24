@@ -31,7 +31,7 @@ parameters = [
 ]
 
 
-# 3. DEFINE A FUNCTION TO HANDLE MISSING VALUES
+# 3. FUNCTION TO HANDLE MISSING VALUES
 
 def calculate_average(values, expected_days):
 
@@ -175,3 +175,12 @@ print(climate.isna().sum())
 print(climate.head(10))
 
 print("Climate dataset saved successfully.")
+
+
+missing_solar = climate[
+    climate["solar_radiation_daily_mean"].isna()
+]
+
+print(
+    missing_solar.groupby("cultivation_year").size()
+)
