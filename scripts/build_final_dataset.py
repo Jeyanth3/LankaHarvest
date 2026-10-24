@@ -82,34 +82,38 @@ master = pd.merge(
 )
 
 
+
 # 6. CALCULATE PREVIOUS-SEASON FEATURES
 
-# Convert yield values to numbers.
-# Missing markers such as '-' become NaN.
+# Convert paddy yield values to numbers
 master["paddy_yield_kg_per_ha"] = pd.to_numeric(
     master["paddy_yield_kg_per_ha"],
     errors="coerce"
 )
 
-# Within one calendar year, Yala comes before Maha
-# when Maha is labelled by its starting year.
+# Treat suspicious zero yields as missing
+# before calculating previous-season yield
+master["paddy_yield_kg_per_ha"] = master[
+    "paddy_yield_kg_per_ha"
+].replace(0, float("nan"))
+
+# Define chronological order of cultivation seasons
 master["season_order"] = master["season"].map({
     "Yala": 0,
     "Maha": 1
 })
 
-# Arrange records chronologically for each district
+# Sort records chronologically for each district
 master = master.sort_values(
     ["district", "cultivation_year", "season_order"]
 ).reset_index(drop=True)
 
-# Previous completed cultivation season's yield
+# Calculate previous-season paddy yield
 master["previous_paddy_yield_kg_per_ha"] = (
     master.groupby("district")["paddy_yield_kg_per_ha"].shift(1)
 )
 
-# Use previous-season irrigation share to avoid
-# using current-season harvested-area information
+# Calculate previous-season irrigation share
 master["previous_irrigation_share_pct"] = (
     master.groupby("district")["irrigation_share_pct"].shift(1)
 )
@@ -172,3 +176,128 @@ final_data.to_csv(output_file, index=False)
 
 print("\nFinal dataset saved successfully!")
 print(final_data.head(10))
+# Investigate Kegalle irrigation records
+
+kegalle = irrigation[
+    irrigation["district"] == "KEGALLE"
+]
+
+print(kegalle[
+    [
+        "cultivation_year",
+        "season",
+        "major_ha",
+        "minor_ha",
+        "rainfed_ha",
+        "total_ha",
+        "irrigation_share_pct"
+    ]
+].head(15).to_string(index=False))
+
+# 9. INVESTIGATE MISSING TARGET VALUES
+
+missing_yield = final_data[
+    final_data["paddy_yield_kg_per_ha"].isna()
+]
+
+print("Missing yields by district:")
+print(missing_yield.groupby("district").size())
+
+print("Missing yields by season:")
+print(missing_yield.groupby("season").size())
+
+print(
+    "Zero yield records:",
+    (final_data["paddy_yield_kg_per_ha"] == 0).sum()
+)
+
+# Check records where paddy yield is zero
+
+zero_yield = final_data[
+    final_data["paddy_yield_kg_per_ha"] == 0
+]
+
+print(zero_yield[
+    ["district", "cultivation_year", "season",
+     "paddy_yield_kg_per_ha"]
+].to_string(index=False))
+
+
+# Compare zero yields with harvested extent
+
+irrigation = pd.read_csv(
+    "Data/processed/irrigation_dataset.csv"
+)
+
+zero_yields = final_data[
+    final_data["paddy_yield_kg_per_ha"] == 0
+]
+
+comparison = zero_yields.merge(
+    irrigation[
+        ["district", "cultivation_year", "season", "total_ha"]
+    ],
+    on=["district", "cultivation_year", "season"],
+    how="left"
+)
+
+print(comparison[
+    ["district", "cultivation_year", "season", "total_ha"]
+].to_string(index=False))
+
+print(
+    "Zero previous yields:",
+    (final_data["previous_paddy_yield_kg_per_ha"] == 0).sum()
+)
+
+# 10. CHECK ML DATASET COMPLETENESS
+
+# Records with a valid target
+valid_target = final_data.dropna(
+    subset=["paddy_yield_kg_per_ha"]
+)
+
+# Records with all features and target available
+complete_records = final_data.dropna()
+
+print("Records with valid target:", len(valid_target))
+print("Fully complete records:", len(complete_records))
+print(
+    "Complete records by season:"
+)
+print(complete_records.groupby("season").size())
+
+# 11. CHECK COMPLETE RECORDS BY DISTRICT
+
+print("\nComplete records by district:")
+
+print(
+    complete_records.groupby("district")
+    .size()
+    .reindex(sorted(final_data["district"].unique()), fill_value=0)
+    .to_string()
+)
+
+# 12. INVESTIGATE DISTRICTS WITH LOW COVERAGE
+
+districts = ["JAFFNA", "KEGALLE", "GALLE", "COLOMBO"]
+
+columns = [
+    "paddy_yield_kg_per_ha",
+    "previous_paddy_yield_kg_per_ha",
+    "previous_irrigation_share_pct",
+    "temperature_c",
+    "solar_radiation_daily_mean"
+]
+
+selected = final_data[
+    final_data["district"].isin(districts)
+]
+
+print("\nMissing values by district and feature:")
+
+print(
+    selected.groupby("district")[columns]
+    .agg(lambda x: x.isna().sum())
+    .to_string()
+)
