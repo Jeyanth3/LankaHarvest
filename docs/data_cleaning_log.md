@@ -4,76 +4,86 @@ This document records data-quality issues identified during dataset processing.
 
 ## DQ-001: Incorrect Cultivation Year — Paddy Yield
 
-**Dataset:** Maha Paddy Yield
+**Issue:** `2020/2021` incorrectly recorded as `2000/2021` in the Maha dataset.
 
-**Issue:** `2020/2021` incorrectly recorded as `2000/2021`.
+**Correction:** Corrected in a separate Excel copy.
 
-**Detection:** Duplicate records for 2000 and missing records for 2020.
-
-**Correction:** Manually corrected in a separate Excel copy.
-
-**Status:** Corrected. Original source confirmation pending.
+**Status:** Corrected; original source confirmation pending.
 
 ## DQ-002: Inconsistent District Spelling
 
-**Issue:** Kilinochchi appeared as `KILLINOCHCHI` and `KILINOCHCHI`.
+**Issue:** `KILLINOCHCHI` and `KILINOCHCHI` represented the same district.
 
 **Correction:** Standardized to `KILINOCHCHI` using Python.
 
-**Status:** Corrected.
+**Status:** Resolved.
 
 ## DQ-003: Missing and Zero Paddy Yield Values
 
-**Dataset:** Paddy Yield
+**Issue:** Preliminary checks identified 80 missing markers and 21 zero-yield records.
 
-**Issue:** Preliminary checks identified 80 missing-value markers (`-`) and 21 zero-yield records.
-
-**Action:** Retain values pending investigation of their meanings.
+**Action:** Retain values until their meanings are verified.
 
 **Status:** Pending validation.
 
 ## DQ-004: Incorrect Cultivation Year — Irrigation
 
-**Dataset:** Maha Harvested Extent
+**Issue:** `2020/2021` incorrectly recorded as `2000/2021` in the Maha harvested-extent dataset.
 
-**Issue:** `2020/2021` incorrectly recorded as `2000/2021`.
+**Correction:** Corrected in the Excel dataset.
 
-**Detection:** 25 duplicate district-year-season records and missing Maha 2020 records.
-
-**Correction:** Corrected the year in the Excel dataset.
-
-**Status:** Resolved; duplicate records reduced to zero.
+**Status:** Resolved; zero duplicate records.
 
 ## DQ-005: Irrigation Shares Above 100%
 
-**Dataset:** Irrigation
-
-**Issue:** 19 records produced irrigation percentages slightly above 100%.
+**Issue:** 19 records produced irrigation shares above 100%.
 
 **Finding:** Major + Minor exceeded Total harvested area by exactly 1 hectare in each affected record.
 
-**Correction:** Capped the 19 calculated percentages at 100%, preserving original area measurements.
+**Action:** Capped the calculated percentages at 100%, preserving original area measurements.
 
-**Status:** Resolved for derived percentages. Source discrepancies remain documented.
+**Status:** Derived values adjusted; source discrepancies documented.
 
 ## DQ-006: Missing Irrigation Values
 
-**Dataset:** Irrigation
+**Issue:** 568 records have missing irrigation-share values.
 
-**Issue:** 568 records have unavailable irrigation-share values.
+**Action:** Retained missing values as `NaN` for further preprocessing.
 
-**Finding:** Missing values are concentrated in earlier years, with some gaps in later years.
+**Status:** Pending ML missing-data strategy.
 
-**Action:** Retain records with `NaN` values for future preprocessing.
+## DQ-007: Missing Solar Radiation Data
 
-**Status:** Pending missing-data strategy.
+**Dataset:** NASA POWER Climate Dataset
 
-## DQ-007: Missing Climate Observations
+**Issue:** 150 seasonal solar-radiation values are missing.
 
-**Dataset:** NASA POWER
+**Distribution:**
+- 1981: 50 records
+- 1982: 50 records
+- 1983: 50 records
 
-**Issue:** Some daily climate measurements may be unavailable and represented by `-999`.
+**Finding:** All 150 missing records occur across the 25 districts and both cultivation seasons during 1981–1983.
 
-**Action:** Convert these markers to `NaN` and apply completeness checks during seasonal aggregation.
+**Action:** Retain missing values as `NaN`. No artificial values were introduced.
 
-**Status:** Processing implemented; seasonal validation pending.
+**Status:** Missing period verified; ML handling pending.
+
+## Data Processing Notes
+
+- Original and corrected source data are maintained separately where applicable.
+- Climate data uses approximate district reference locations.
+- Maha and Yala climate periods are initially defined as September–March and April–August.
+- Data quality will be rechecked after merging all datasets.
+
+## DQ-008: Inconsistent Harvested Extent Totals
+
+**Issue:** Identified inconsistencies between reported total harvested area and the sum of major, minor and rainfed harvested areas.
+
+**Examples:**
+- Batticaloa, 1984 Maha: 62,000 ha discrepancy.
+- Puttalam, 1983 Maha: 10,000 ha discrepancy.
+
+**Action:** Verified that these discrepancies exist in the original DCS Excel source. Original values preserved.
+
+**Status:** Source verification and correction pending.

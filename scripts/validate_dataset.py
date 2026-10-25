@@ -87,3 +87,79 @@ review.to_csv(REPORT_PATH, index=False)
 print(f"\nReview report saved to: {REPORT_PATH}")
 print("No original data was modified.")
 print("NEXT: Verify what a dash/blank means in the original DCS Excel file.")
+
+
+# 6. TEST ALTERNATIVE IRRIGATION SHARE FORMULA
+
+test = irrigation[
+    (irrigation["total_ha"] > 0)
+    & irrigation["rainfed_ha"].notna()
+].copy()
+
+test["alternative_share_pct"] = (
+    (test["total_ha"] - test["rainfed_ha"])
+    / test["total_ha"]
+) * 100
+
+# Compare against already calculated shares
+known = test[test["irrigation_share_pct"].notna()]
+
+difference = (
+    known["alternative_share_pct"]
+    - known["irrigation_share_pct"]
+).abs()
+
+print("\n=== ALTERNATIVE FORMULA VALIDATION ===")
+print("Existing shares compared:", len(known))
+print("Largest difference (percentage points):", difference.max())
+
+# Count missing shares recoverable using this method
+recoverable = test[test["irrigation_share_pct"].isna()]
+
+print("Potentially recoverable records:", len(recoverable))
+print("\nExamples:")
+print(
+    recoverable[
+        ["district", "cultivation_year", "season",
+         "alternative_share_pct"]
+    ].head(10).to_string(index=False)
+)
+
+
+
+# 7. INVESTIGATE IRRIGATION FORMULA DIFFERENCES
+
+known = test[
+    test["irrigation_share_pct"].notna()
+].copy()
+
+known["difference_pp"] = (
+    known["alternative_share_pct"]
+    - known["irrigation_share_pct"]
+).abs()
+
+# Show the 10 largest discrepancies
+worst = known.sort_values(
+    "difference_pp",
+    ascending=False
+).head(10)
+
+print("\n=== TOP 10 IRRIGATION DISCREPANCIES ===")
+
+print(worst[
+    [
+        "district",
+        "cultivation_year",
+        "season",
+        "major_ha",
+        "minor_ha",
+        "rainfed_ha",
+        "total_ha",
+        "irrigation_share_pct",
+        "alternative_share_pct",
+        "difference_pp"
+    ]
+].to_string(index=False))
+
+print("\nRecords with difference > 1 percentage point:")
+print((known["difference_pp"] > 1).sum())
