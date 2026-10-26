@@ -163,3 +163,62 @@ print(worst[
 
 print("\nRecords with difference > 1 percentage point:")
 print((known["difference_pp"] > 1).sum())
+
+
+# 8. AUDIT HARVESTED AREA CONSISTENCY
+
+area_columns = [
+    "major_ha",
+    "minor_ha",
+    "rainfed_ha",
+    "total_ha"
+]
+
+# Select records with all four area values available
+audit = irrigation.dropna(subset=area_columns).copy()
+
+# Calculate the sum of harvested-area categories
+audit["calculated_total_ha"] = (
+    audit["major_ha"]
+    + audit["minor_ha"]
+    + audit["rainfed_ha"]
+)
+
+# Compare calculated and reported totals
+audit["difference_ha"] = (
+    audit["calculated_total_ha"]
+    - audit["total_ha"]
+)
+
+# Flag discrepancies greater than 2 hectares
+suspicious = audit[
+    audit["difference_ha"].abs() > 2
+].copy()
+
+suspicious = suspicious.sort_values(
+    "difference_ha",
+    key=abs,
+    ascending=False
+)
+
+print("\n=== HARVESTED AREA AUDIT ===")
+
+print("Records checked:", len(audit))
+print("Suspicious records:", len(suspicious))
+
+print(
+    suspicious[
+        KEYS + area_columns
+        + ["calculated_total_ha", "difference_ha"]
+    ].to_string(index=False)
+)
+
+# Save all suspicious records for investigation
+output = (
+    PROJECT_ROOT / "Data" / "interim"
+    / "harvested_area_discrepancies.csv"
+)
+
+suspicious.to_csv(output, index=False)
+
+print("\nAudit report saved to:", output)
